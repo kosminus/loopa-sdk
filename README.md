@@ -2,6 +2,8 @@
 
 A small SDK for self-extending desktop apps. Drop in a hand-written `v0`, type a change request inside the running app, and the supervisor regenerates `v1` from a local LLM, validates it, swaps versions, and rolls back if it crashes.
 
+![Loopa architecture](loopa-sdk.png)
+
 The first consumer is a Tk calculator under [apps/calculator/](apps/calculator/). The framework itself is in [loopa/](loopa/).
 
 ## Three roles
