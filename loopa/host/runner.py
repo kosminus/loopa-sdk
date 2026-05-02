@@ -68,7 +68,7 @@ class PythonRunner:
     def _find_interpreter(self) -> str:
         candidates: list[str | None] = [
             self.interpreter,
-            os.environ.get("FORGE_PYTHON"),
+            os.environ.get("LOOPA_PYTHON"),
             sys.executable,
             shutil.which("python3"),
             shutil.which("python"),

@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import TextIO
 
-import forge
+import loopa
 
 from . import inbox, registry, status, versions
 from .atomic import atomic_write_json
@@ -78,16 +78,16 @@ class Supervisor:
 
     def _build_env(self) -> dict[str, str]:
         env = os.environ.copy()
-        env["FORGE_APP_ROOT"] = str(self.spec.paths.root)
-        env["FORGE_RUNTIME"] = str(self.spec.paths.runtime_dir)
-        env["FORGE_ARTIFACT_LOG"] = str(self.spec.paths.artifact_log)
+        env["LOOPA_APP_ROOT"] = str(self.spec.paths.root)
+        env["LOOPA_RUNTIME"] = str(self.spec.paths.runtime_dir)
+        env["LOOPA_ARTIFACT_LOG"] = str(self.spec.paths.artifact_log)
         env["PYTHONUNBUFFERED"] = "1"
         env["PYTHONDONTWRITEBYTECODE"] = "1"
 
-        forge_parent = str(Path(forge.__file__).resolve().parent.parent)
+        loopa_parent = str(Path(loopa.__file__).resolve().parent.parent)
         existing = env.get("PYTHONPATH")
         env["PYTHONPATH"] = (
-            forge_parent if not existing else f"{forge_parent}{os.pathsep}{existing}"
+            loopa_parent if not existing else f"{loopa_parent}{os.pathsep}{existing}"
         )
         return env
 

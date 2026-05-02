@@ -7,7 +7,7 @@ from .config import load_spec
 from .supervisor import Supervisor
 
 
-USAGE = "usage: forge run <app_dir>"
+USAGE = "usage: loopa run <app_dir>"
 
 
 def main(argv: list[str] | None = None) -> int:

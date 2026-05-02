@@ -1,14 +1,14 @@
-# Forge
+# Loopa
 
 A small SDK for self-extending desktop apps. Drop in a hand-written `v0`, type a change request inside the running app, and the supervisor regenerates `v1` from a local LLM, validates it, swaps versions, and rolls back if it crashes.
 
-The first consumer is a Tk calculator under [apps/calculator/](apps/calculator/). The framework itself is in [forge/](forge/).
+The first consumer is a Tk calculator under [apps/calculator/](apps/calculator/). The framework itself is in [loopa/](loopa/).
 
 ## Three roles
 
-- **Supervisor** ([forge/host/supervisor.py](forge/host/supervisor.py)) — long-running host. Launches the artifact, polls the task inbox, calls the implementor, validates, swaps versions, watches startup, rolls back.
-- **Artifact** ([apps/<name>/versions/vN/main.py](apps/calculator/versions/v0/main.py)) — the actual app, launched as a subprocess. Imports only `forge.artifact.*`.
-- **Implementor** ([forge/host/implementor.py](forge/host/implementor.py)) — generates the next artifact from the current source + user task. Default ships an Ollama backend.
+- **Supervisor** ([loopa/host/supervisor.py](loopa/host/supervisor.py)) — long-running host. Launches the artifact, polls the task inbox, calls the implementor, validates, swaps versions, watches startup, rolls back.
+- **Artifact** ([apps/<name>/versions/vN/main.py](apps/calculator/versions/v0/main.py)) — the actual app, launched as a subprocess. Imports only `loopa.artifact.*`.
+- **Implementor** ([loopa/host/implementor.py](loopa/host/implementor.py)) — generates the next artifact from the current source + user task. Default ships an Ollama backend.
 
 IPC between supervisor and artifact is plain files in `apps/<name>/runtime/`:
 
@@ -18,8 +18,8 @@ IPC between supervisor and artifact is plain files in `apps/<name>/runtime/`:
 
 ## Loop
 
-1. User types a request → `forge.artifact.chat.send_task` ([forge/artifact/chat.py:40](forge/artifact/chat.py:40)) appends to `tasks.jsonl`.
-2. Supervisor polls ([forge/host/supervisor.py:138](forge/host/supervisor.py:138)), allocates `versions/vN+1/`, calls `implementor.generate(...)`.
+1. User types a request → `loopa.artifact.chat.send_task` ([loopa/artifact/chat.py:40](loopa/artifact/chat.py:40)) appends to `tasks.jsonl`.
+2. Supervisor polls ([loopa/host/supervisor.py:138](loopa/host/supervisor.py:138)), allocates `versions/vN+1/`, calls `implementor.generate(...)`.
 3. Validators run in order against `vN+1/`: compile + token policy. Each failure feeds back as `previous_error` for the next implementor attempt (up to `max_attempts`).
 4. Supervisor stops the old artifact, flips the registry, launches `vN+1`, and runs the probe.
 5. Probe failure → rollback to `vN`. Probe ok → status `ready`.
@@ -31,13 +31,13 @@ The supervisor itself knows nothing about Python, Tk, or calculators. Five inter
 
 | Plug point | Default | Lives in |
 |---|---|---|
-| `Runner` — how to launch / stop the artifact | `PythonRunner` (with optional Tk preflight) | [runner.py](forge/host/runner.py) |
-| `Probe` — "is the new version actually working?" | `ProcessAliveProbe(window_seconds=10)` | [probe.py](forge/host/probe.py) |
-| `Validator` — static gates against generated code | `CompilePythonValidator`, `TokenPolicyValidator` | [validator.py](forge/host/validator.py) |
-| `Implementor` — produces the next artifact | `OllamaImplementor` | [implementor.py](forge/host/implementor.py) |
-| `forge.artifact.*` — surface the artifact may import | `chat.send_task`, `chat.read_status`, `state.connect` | [forge/artifact/](forge/artifact/) |
+| `Runner` — how to launch / stop the artifact | `PythonRunner` (with optional Tk preflight) | [runner.py](loopa/host/runner.py) |
+| `Probe` — "is the new version actually working?" | `ProcessAliveProbe(window_seconds=10)` | [probe.py](loopa/host/probe.py) |
+| `Validator` — static gates against generated code | `CompilePythonValidator`, `TokenPolicyValidator` | [validator.py](loopa/host/validator.py) |
+| `Implementor` — produces the next artifact | `OllamaImplementor` | [implementor.py](loopa/host/implementor.py) |
+| `loopa.artifact.*` — surface the artifact may import | `chat.send_task`, `chat.read_status`, `state.connect` | [loopa/artifact/](loopa/artifact/) |
 
-The kernel ([forge/host/](forge/host/)) owns: registry, version dir allocation, task inbox + dedupe, atomic writes, the launch/watch/swap loop, and retry-with-error-feedback orchestration.
+The kernel ([loopa/host/](loopa/host/)) owns: registry, version dir allocation, task inbox + dedupe, atomic writes, the launch/watch/swap loop, and retry-with-error-feedback orchestration.
 
 ## Quick start
 
@@ -56,7 +56,7 @@ ollama run gemma4:latest
 Run the calculator:
 
 ```bash
-python -m forge run apps/calculator/
+python -m loopa run apps/calculator/
 ```
 
 Type a change request in the bottom box (e.g. "add a percentage button") and press Send. Watch `apps/calculator/logs/supervisor.log`.
@@ -64,7 +64,7 @@ Type a change request in the bottom box (e.g. "add a percentage button") and pre
 ## Repository layout
 
 ```
-forge/                       # the SDK
+loopa/                       # the SDK
 ├── host/                    # the kernel — never imported by artifacts
 │   ├── supervisor.py        # the loop
 │   ├── registry.py inbox.py status.py versions.py atomic.py paths.py
@@ -72,15 +72,15 @@ forge/                       # the SDK
 │   ├── probe.py             # Probe protocol + ProcessAliveProbe
 │   ├── validator.py         # Validator protocol + CompilePython, TokenPolicy
 │   ├── implementor.py       # Implementor protocol + OllamaImplementor
-│   ├── config.py            # forge.toml → AppSpec
-│   └── cli.py               # `forge run <app_dir>`
+│   ├── config.py            # app.toml → AppSpec
+│   └── cli.py               # `loopa run <app_dir>`
 └── artifact/                # the only namespace artifacts may import
     ├── chat.py              # send_task, read_status
     └── state.py             # sqlite connect()
 
 apps/
 └── calculator/              # first consumer
-    ├── forge.toml           # app spec
+    ├── app.toml             # app spec
     ├── prompt.md            # implementor system prompt
     ├── versions/v0/main.py  # hand-written seed artifact
     ├── runtime/             # generated: registry.json, status.json, tasks.jsonl, state.db
@@ -93,12 +93,12 @@ Three files, one directory:
 
 ```
 apps/<name>/
-├── forge.toml
+├── app.toml
 ├── prompt.md
 └── versions/v0/main.py
 ```
 
-`forge.toml` minimum:
+`app.toml` minimum:
 
 ```toml
 name = "notes"
@@ -115,27 +115,27 @@ prompt = "prompt.md"
 
 [validator.token_policy]
 required = ["send_task(", "read_status("]
-forbidden = ["eval(", "exec(", "subprocess", "import forge.host"]
+forbidden = ["eval(", "exec(", "subprocess", "import loopa.host"]
 ```
 
-`v0/main.py` is hand-written, imports `from forge.artifact.chat import send_task, read_status`, and shows a visible change-request input. `prompt.md` is the system prompt the implementor sends to the LLM along with the current source and the user task.
+`v0/main.py` is hand-written, imports `from loopa.artifact.chat import send_task, read_status`, and shows a visible change-request input. `prompt.md` is the system prompt the implementor sends to the LLM along with the current source and the user task.
 
 Run with:
 
 ```bash
-python -m forge run apps/<name>/
+python -m loopa run apps/<name>/
 ```
 
 ## Artifact contract
 
 Every generated `main.py` must:
 
-- import only `forge.artifact.*` from the framework (never `forge.host`)
+- import only `loopa.artifact.*` from the framework (never `loopa.host`)
 - expose a visible change-request input that calls `send_task(task)`
 - poll `read_status()` and display the supervisor message
-- run as a normal Python script (the supervisor sets `PYTHONPATH`, `FORGE_APP_ROOT`, `FORGE_RUNTIME`, `FORGE_ARTIFACT_LOG` before launch)
+- run as a normal Python script (the supervisor sets `PYTHONPATH`, `LOOPA_APP_ROOT`, `LOOPA_RUNTIME`, `LOOPA_ARTIFACT_LOG` before launch)
 - derive its version from `Path(__file__).resolve().parent.name`
-- pass whatever `[validator.token_policy]` the app's `forge.toml` specifies
+- pass whatever `[validator.token_policy]` the app's `app.toml` specifies
 
 `manifest.json` is written by the supervisor, not the LLM.
 

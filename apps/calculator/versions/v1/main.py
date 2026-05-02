@@ -6,7 +6,7 @@ import os
 import tkinter as tk
 from pathlib import Path
 
-from forge.artifact.chat import read_status, send_task
+from loopa.artifact.chat import read_status, send_task
 
 
 APP_VERSION = Path(__file__).resolve().parent.name
@@ -320,11 +320,11 @@ class CalculatorApp:
         self.display_value.set(text[-28:])
 
     def log_startup(self) -> None:
-        log_path = os.environ.get("FORGE_ARTIFACT_LOG")
+        log_path = os.environ.get("LOOPA_ARTIFACT_LOG")
         if not log_path:
             return
         with open(log_path, "a", encoding="utf-8") as log_file:
-            log_file.write(f"started Forge Calculator {APP_VERSION} from {Path(__file__).resolve()}\n")
+            log_file.write(f"started Loopa Calculator {APP_VERSION} from {Path(__file__).resolve()}\n")
 
     def format_number(self, value: float) -> str:
         if isinstance(value, float) and value.is_integer():

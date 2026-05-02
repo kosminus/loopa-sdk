@@ -8,14 +8,14 @@ from uuid import uuid4
 
 
 def app_root() -> Path:
-    root = os.environ.get("FORGE_APP_ROOT")
+    root = os.environ.get("LOOPA_APP_ROOT")
     if not root:
-        raise RuntimeError("FORGE_APP_ROOT is not set; run the artifact under the forge supervisor.")
+        raise RuntimeError("LOOPA_APP_ROOT is not set; run the artifact under the loopa supervisor.")
     return Path(root)
 
 
 def runtime_path() -> Path:
-    override = os.environ.get("FORGE_RUNTIME")
+    override = os.environ.get("LOOPA_RUNTIME")
     return Path(override) if override else app_root() / "runtime"
 
 

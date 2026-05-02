@@ -24,8 +24,8 @@ forbidden = [
   "urllib",
   "requests",
   "socket",
-  "import forge.host",
-  "from forge.host",
+  "import loopa.host",
+  "from loopa.host",
 ]
 required = [
   "tk.Tk(",

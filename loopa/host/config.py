@@ -27,9 +27,9 @@ class AppSpec:
 def load_spec(config_path: Path | str) -> AppSpec:
     config_path = Path(config_path).resolve()
     if config_path.is_dir():
-        config_path = config_path / "forge.toml"
+        config_path = config_path / "app.toml"
     if not config_path.exists():
-        raise FileNotFoundError(f"forge config not found: {config_path}")
+        raise FileNotFoundError(f"loopa config not found: {config_path}")
 
     with config_path.open("rb") as f:
         raw = tomllib.load(f)
@@ -63,7 +63,7 @@ def load_spec(config_path: Path | str) -> AppSpec:
 def _require_str(raw: dict, key: str) -> str:
     value = raw.get(key)
     if not isinstance(value, str):
-        raise ValueError(f"forge.toml missing required string field: {key}")
+        raise ValueError(f"app.toml missing required string field: {key}")
     return value
 
 

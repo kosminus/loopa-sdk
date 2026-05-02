@@ -1,12 +1,12 @@
 [project]
-name = "forge"
+name = "loopa-sdk"
 version = "0.1.0"
 description = "Host/artifact/implementor SDK for self-extending desktop apps"
 requires-python = ">=3.11"
 dependencies = []
 
 [project.scripts]
-forge = "forge.host.cli:main"
+loopa = "loopa.host.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -14,4 +14,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["forge*"]
+include = ["loopa*"]
