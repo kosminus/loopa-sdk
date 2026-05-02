@@ -1,0 +1,35 @@
+name = "calculator"
+entry = "main.py"
+seed_version = "v0"
+
+[runner]
+kind = "python-tk"
+
+[probe]
+kind = "process-alive"
+window_seconds = 10
+
+[implementor]
+kind = "ollama"
+model = "gemma4:latest"
+prompt = "prompt.md"
+max_attempts = 3
+
+[validator.token_policy]
+forbidden = [
+  "eval(",
+  "exec(",
+  "subprocess",
+  "os.system",
+  "urllib",
+  "requests",
+  "socket",
+  "import forge.host",
+  "from forge.host",
+]
+required = [
+  "tk.Tk(",
+  "mainloop(",
+  "send_task(",
+  "read_status(",
+]
